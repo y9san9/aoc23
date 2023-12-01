@@ -12,6 +12,7 @@
 
 - Day 1
   - [Part 1](src/main/kotlin/me/y9san9/aoc23/day1/part1/Day1.1.kt)
+  - [Part 2](src/main/kotlin/me/y9san9/aoc23/day1/part2/Day1.2.kt)
 
 ## Immutability
 
