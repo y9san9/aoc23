@@ -2,27 +2,31 @@ package me.y9san9.aoc23.day2.part1
 
 import java.io.File
 
+private const val redLimit = 12
+private const val greenLimit = 13
+private const val blueLimit = 14
+
 fun main() {
     val lines = lines()
-    val redLimit = 12
-    val greenLimit = 13
-    val blueLimit = 14
 
-    val sum = lines.mapIndexed { i, line ->
-        (i + 1) to line.substringAfter(":").trim()
-    }.filter { (_, line) ->
-        line.split(";").all { game ->
-            val cubes = game.split(",")
-            cubes.all { cube ->
-                when {
-                    cube.endsWith("red") -> cube.removeSuffix(" red").trim().toInt() <= redLimit
-                    cube.endsWith("green") -> cube.removeSuffix(" green").trim().toInt() <= greenLimit
-                    cube.endsWith("blue") -> cube.removeSuffix(" blue").trim().toInt() <= blueLimit
-                    else -> error("Stub!")
+    val sum = lines
+        .map { line ->
+            line.substringAfter(":").trim()
+                .split(": ", ", ")
+                .map { cubes -> cubes.split(" ") }
+                .map { (int, type) -> int.toInt() to type }
+        }
+        .mapIndexed { i, games -> (i + 1) to games }
+        .filter { (_, games) ->
+            games.all { (int, type) ->
+                when (type) {
+                    "red" -> int <= redLimit
+                    "green" -> int <= greenLimit
+                    "blue" -> int <= blueLimit
+                    else -> stub()
                 }
             }
-        }
-    }.sumOf { (i) -> i }
+        }.sumOf { (i) -> i }
 
     println(sum)
 }
@@ -47,3 +51,5 @@ private inline fun <T, R> Iterable<T>.lastNotNullOf(block: (T) -> R?): R {
 private inline fun <T, R> List<T>.lastNotNullOf(block: (T) -> R?): R {
     return asReversed().firstNotNullOf(block)
 }
+
+private fun stub(): Nothing = error("stub!")
