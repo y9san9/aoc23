@@ -2,13 +2,19 @@ package me.y9san9.aoc23.day1.part2
 
 import java.io.File
 
-fun main() = lines()
-    .map(::digits)
-    .sumOf(::extractInt)
-    .let(::println)
-
-fun digits(string: String) = string.indices
-    .mapNotNull { index -> string.extractDigitOrNull(index) }
+fun main() {
+    val lines = lines()
+    val sum = lines.sumOf { line ->
+        val first = line.indices.firstNotNullOf { index ->
+            line.extractDigitOrNull(index)
+        }
+        val last = line.indices.lastNotNullOf { index ->
+            line.extractDigitOrNull(index)
+        }
+        first * 10 + last
+    }
+    println(sum)
+}
 
 private val digits = listOf(
     "one", "two", "three",
@@ -25,9 +31,6 @@ private fun String.extractDigitOrNull(index: Int): Int? {
     }?.plus(other = 1)
 }
 
-fun extractInt(digits: List<Int>): Int =
-    digits.first() * 10 + digits.last()
-
 // SCAFFOLD
 
 private fun lines() = inputFile().readLines()
@@ -40,3 +43,7 @@ private fun inputFile(): File = File(
 private inline fun <T> List<T>.indexOfFirstOrNull(
     block: (T) -> Boolean
 ): Int? = indexOfFirst(block).takeIf { it != -1 }
+
+private inline fun <T, R> Iterable<T>.lastNotNullOf(block: (T) -> R?): R {
+    return reversed().firstNotNullOf(block)
+}

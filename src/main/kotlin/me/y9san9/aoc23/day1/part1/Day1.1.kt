@@ -1,20 +1,16 @@
 package me.y9san9.aoc23.day1.part1
 
-import me.y9san9.aoc23.day1.part2.digits
 import java.io.File
 
 fun main() {
-    lines()
-        .map(::digits)
-        .sumOf(::extractInt)
-        .let(::println)
+    val lines = lines()
+    val sum = lines.sumOf { line ->
+        val first = line.firstNotNullOf(Char::digitToIntOrNull)
+        val second = line.lastNotNullOf(Char::digitToIntOrNull)
+        first * 10 + second
+    }
+    println(sum)
 }
-
-fun digits(string: String): List<Int> =
-    string.mapNotNull { char -> char.digitToIntOrNull() }
-
-fun extractInt(digits: List<Int>): Int =
-    digits.first() * 10 + digits.last()
 
 // SCAFFOLD
 
@@ -24,3 +20,7 @@ private fun inputFile(): File = File(
     System.getenv("user.dir"),
     "src/main/kotlin/me/y9san9/aoc23/day1/part1/Input.txt"
 )
+
+private inline fun <T> String.lastNotNullOf(block: (Char) -> T?): T {
+    return reversed().firstNotNullOf(block)
+}

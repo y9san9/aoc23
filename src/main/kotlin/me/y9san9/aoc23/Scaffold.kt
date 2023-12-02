@@ -18,3 +18,11 @@ private fun inputFile(): File = File(
 private inline fun <T> List<T>.indexOfFirstOrNull(
     block: (T) -> Boolean
 ): Int? = indexOfFirst(block).takeIf { it != -1 }
+
+private inline fun <T, R> Iterable<T>.lastNotNullOf(block: (T) -> R?): R {
+    return reversed().firstNotNullOf(block)
+}
+
+private inline fun <T, R> List<T>.lastNotNullOf(block: (T) -> R?): R {
+    return asReversed().firstNotNullOf(block)
+}
