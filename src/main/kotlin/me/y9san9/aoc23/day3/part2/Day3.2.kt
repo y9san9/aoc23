@@ -2,68 +2,48 @@ package me.y9san9.aoc23.day3.part2
 
 import java.io.File
 
-data class EngineNumber(
-    val xy: Pair<Int, Int>,
-    val width: Int,
+private data class EngineNumber(
     val int: Int,
-    val surroundings: List<Pair<Char, Pair<Int, Int>>>
+    val region: RectRegion
 )
 
-data class Gear(
-    val xy: Pair<Int, Int>,
-    val ratio: Int
+private data class Gear(
+    val coordinates: Coordinates
 )
 
-fun main() {
+private fun main() {
     val lines = lines()
+    val region = lines.region()
 
-    val numbers = lines.indices.flatMap { y ->
+    val numbers = region.coordinates.mapNotNull { (x, y) ->
         val line = lines[y]
-        line.indices.mapNotNull { x ->
-            val char = line[x]
-            if (!char.isDigit()) return@mapNotNull null
-            if (x != 0 && line[x - 1].isDigit()) return@mapNotNull null
-            val number = line.substring(x).takeWhile(Char::isDigit)
-            val surroundings = (y - 1..y + 1).flatMap { newY ->
-                (x - 1..x + number.length).mapNotNull { newX ->
-                    if (newY in lines.indices && newX in line.indices) {
-                        val newChar = lines[newY][newX]
-                        if (newChar.isDigit()) {
-                            null
-                        } else {
-                            newChar to (newX to newY)
-                        }
-                    } else null
-                }
-            }
-            EngineNumber(
-                xy = x to y,
-                width = number.length,
-                int = number.toInt(),
-                surroundings = surroundings
-            )
-        }
+        val char = line[x]
+
+        if (!char.isDigit()) return@mapNotNull null
+        val isFirstDigit = x == 0 || !line[x - 1].isDigit()
+        if (!isFirstDigit) return@mapNotNull null
+
+        val int = line.substring(x).takeWhile(Char::isDigit)
+        val numberRegion = RectRegion(
+            width = int.length, height = 1,
+            topLeft = Coordinates(x, y)
+        )
+        EngineNumber(int.toInt(), numberRegion)
     }
 
-    val gears = lines.indices.flatMap { y ->
-        val line = lines[y]
-        line.indices.mapNotNull { x ->
-            val char = lines[y][x]
-            if (char != '*') return@mapNotNull null
-            val gearNumbers = numbers.filter { number ->
-                val (numberX, numberY) = number.xy
-                (y in numberY - 1..numberY + 1) &&
-                        (x in numberX - 1..numberX + number.width)
-            }
-            if (gearNumbers.size != 2) return@mapNotNull null
-            Gear(
-                xy = x to y,
-                ratio = gearNumbers.fold(initial = 1) { acc, number -> acc * number.int }
-            )
-        }
-    }.sumOf { gear -> gear.ratio }
+    val gears = region.coordinates.mapNotNull { (x, y) ->
+        if (lines[y][x] != '*') return@mapNotNull null
+        Gear(coordinates = Coordinates(x, y))
+    }
 
-    println(gears)
+    val sum = gears.sumOf { gear ->
+        val gearNumbers = numbers
+            .filter { (_, region) -> gear.coordinates in region.neighbors() }
+            .takeIf { list -> list.size == 2 } ?: return@sumOf 0L
+        gearNumbers.fold(initial = 1) { acc, (int) -> acc * int }
+    }
+
+    println(sum)
 }
 
 // SCAFFOLD
@@ -75,26 +55,130 @@ private fun inputFile(): File = File(
     "src/main/kotlin/me/y9san9/aoc23/day3/part2/Input.txt"
 )
 
-private inline fun <T> List<T>.indexOfFirstOrNull(
-    block: (T) -> Boolean
-): Int? = indexOfFirst(block).takeIf { it != -1 }
+// Coordinates Helpers
 
-private inline fun <T, R> Iterable<T>.lastNotNullOf(block: (T) -> R?): R {
-    return reversed().firstNotNullOf(block)
+private data class Coordinates(
+    val x: Int,
+    val y: Int
+) {
+    operator fun plus(other: Coordinates): Coordinates {
+        return Coordinates(
+            x = x + other.x,
+            y = y + other.y
+        )
+    }
+
+    operator fun minus(other: Coordinates): Coordinates {
+        return Coordinates(
+            x = x - other.x,
+            y = y - other.y
+        )
+    }
+
+    fun move(x: Int = 0, y: Int = 0) = Coordinates(
+        x = this.x + x,
+        y = this.y + y
+    )
 }
 
-private inline fun <T, R> List<T>.lastNotNullOf(block: (T) -> R?): R {
-    return asReversed().firstNotNullOf(block)
+private data class RectRegion(
+    val width: Int,
+    val height: Int,
+    val topLeft: Coordinates
+) {
+    init {
+        require(width > 0)
+        require(height > 0)
+    }
+
+    val leftX: Int get() = topLeft.x
+    val rightX: Int get() = topLeft.x + width - 1
+    val topY: Int get() = topLeft.y
+    val bottomY: Int get() = topLeft.y + height - 1
+
+    val topRight: Coordinates get() = Coordinates(rightX, topY)
+    val bottomLeft: Coordinates get() = Coordinates(leftX, bottomY)
+
+    val leftLine: RectRegion get() = RectRegion(
+        width = 1,
+        height = height,
+        topLeft = topLeft
+    )
+    val topLine: RectRegion get() = RectRegion(
+        width = width,
+        height = 1,
+        topLeft = topLeft
+    )
+    val rightLine: RectRegion get() = RectRegion(
+        width = 1,
+        height = height,
+        topLeft = topRight
+    )
+    val bottomLine: RectRegion get() = RectRegion(
+        width = width,
+        height = 1,
+        topLeft = bottomLeft
+    )
+
+    val raw: Region get() {
+        val coordinates = (leftX..rightX).flatMap { x ->
+            (topY..bottomY).map { y ->
+                Coordinates(x, y)
+            }
+        }
+        return Region(coordinates.toSet())
+    }
+
+    operator fun contains(coordinates: Coordinates): Boolean {
+        return coordinates.x in (coordinates.x..<coordinates.x + width) &&
+                coordinates.y in (coordinates.y..coordinates.y + height)
+    }
+
+    fun expand(x: Int = 1, y: Int = 1): RectRegion {
+        return RectRegion(
+            width = width + x * 2,
+            height = height + y * 2,
+            topLeft = topLeft.move(
+                x = -x,
+                y = -y
+            )
+        )
+    }
+
+    fun border(): Region {
+        return leftLine.raw + topLine.raw + rightLine.raw + bottomLine.raw
+    }
+
+    fun neighbors(): Region {
+        return expand().border()
+    }
 }
 
-private fun String.day2Parser(
-    split: List<String> = listOf(":", ",")
-): List<List<String>> = split(
-    delimiters = split.toTypedArray()
-).map { string -> string.split(" ") }
+private data class Region(val coordinates: Set<Coordinates>) {
 
-private fun stub(): Nothing = error("stub!")
+    operator fun contains(coordinates: Coordinates): Boolean {
+        return coordinates in this.coordinates
+    }
 
-private val Triple<Int, Int, Int>.Zero get() = Triple(0, 0, 0)
+    operator fun plus(other: Region): Region {
+        return Region(coordinates = coordinates + other.coordinates)
+    }
 
-private fun zeroIntTriple() = Triple(0, 0, 0)
+    operator fun minus(other: Region): Region {
+        return Region(coordinates = coordinates - other.coordinates)
+    }
+}
+
+@JvmName("regionString")
+private fun List<String>.region(): Region = map { string -> string.toList() }.region()
+
+private fun List<List<*>>.region(): Region {
+    val columns = this
+    val coordinates = columns.indices.flatMap { y ->
+        val rows = columns[y]
+        rows.indices.map { x ->
+            Coordinates(x, y)
+        }
+    }
+    return Region(coordinates.toSet())
+}

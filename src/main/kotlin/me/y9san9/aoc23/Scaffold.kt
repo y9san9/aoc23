@@ -1,6 +1,8 @@
 package me.y9san9.aoc23
 
 import java.io.File
+import java.lang.Integer.min
+import kotlin.math.max
 
 // NOTE: Each Day* file contains FULL solution
 // this file is only used to copy-paste util functions

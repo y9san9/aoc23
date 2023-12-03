@@ -1,45 +1,8 @@
-package me.y9san9.aoc23.day3.part1
+package me.y9san9.aoc23
 
-import java.io.File
+import kotlin.math.max
+import kotlin.math.min
 
-data class EngineNumber(
-    val int: Int,
-    val neighbors: List<Char>
-)
-
-fun main() {
-    val lines = lines()
-    val region = lines.region()
-
-    val sum = region.coordinates.mapNotNull { (x, y) ->
-        val line = lines[y]
-        val char = line[x]
-
-        if (!char.isDigit()) return@mapNotNull null
-        val isFirstDigit = x == 0 || !line[x - 1].isDigit()
-        if (!isFirstDigit) return@mapNotNull null
-
-        val int = line.substring(x).takeWhile(Char::isDigit)
-        val neighbors = RectRegion.fromCoordinate(x, y)
-            .neighbors()
-            .intersect(region)
-            .coordinates.map { (x, y) -> lines[y][x] }
-
-        EngineNumber(int.toInt(), neighbors)
-    }.filter { (_, neighbors) -> neighbors.any { char -> char != '.' } }
-        .sumOf { (int) -> int }
-
-    println(sum)
-}
-
-// SCAFFOLD
-
-private fun lines() = inputFile().readLines()
-
-private fun inputFile(): File = File(
-    System.getenv("user.dir"),
-    "src/main/kotlin/me/y9san9/aoc23/day3/part1/Input.txt"
-)
 
 // Coordinates Helpers
 
@@ -67,6 +30,23 @@ private data class Coordinates(
     )
 }
 
+private data class Rect(
+    val width: Int,
+    val height: Int
+) {
+    init {
+        require(width > 0)
+        require(height > 0)
+    }
+
+    fun placeAt(coordinates: Coordinates): RectRegion {
+        return RectRegion(width, height, coordinates)
+    }
+    fun placeAt(x: Int, y: Int): RectRegion {
+        return placeAt(Coordinates(x, y))
+    }
+}
+
 private data class RectRegion(
     val width: Int,
     val height: Int,
@@ -84,6 +64,7 @@ private data class RectRegion(
 
     val topRight: Coordinates get() = Coordinates(rightX, topY)
     val bottomLeft: Coordinates get() = Coordinates(leftX, bottomY)
+    val bottomRight: Coordinates get() = Coordinates(rightX, bottomY)
 
     val leftLine: RectRegion get() = RectRegion(
         width = 1,
@@ -106,6 +87,17 @@ private data class RectRegion(
         topLeft = bottomLeft
     )
 
+    val rect: Rect get() = Rect(width, height)
+
+    val raw: Region get() {
+        val coordinates = (leftX..rightX).flatMap { x ->
+            (topY..bottomY).map { y ->
+                Coordinates(x, y)
+            }
+        }
+        return Region(coordinates.toSet())
+    }
+
     operator fun contains(coordinates: Coordinates): Boolean {
         return coordinates.x in (coordinates.x..<coordinates.x + width) &&
                 coordinates.y in (coordinates.y..coordinates.y + height)
@@ -122,21 +114,27 @@ private data class RectRegion(
         )
     }
 
-    fun raw(): Region {
-        val coordinates = (leftX..rightX).flatMap { x ->
-            (topY..bottomY).map { y ->
-                Coordinates(x, y)
-            }
-        }
-        return Region(coordinates.toSet())
-    }
-
     fun border(): Region {
-        return leftLine.raw() + topLine.raw() + rightLine.raw() + bottomLine.raw()
+        return leftLine.raw + topLine.raw + rightLine.raw + bottomLine.raw
     }
 
     fun neighbors(): Region {
         return expand().border()
+    }
+
+    infix fun intersectOrNull(other: RectRegion): RectRegion? {
+        val topLeft = Coordinates(
+            x = max(topLeft.x, other.topLeft.x),
+            y = max(topLeft.y, other.topLeft.y)
+        )
+        val bottomRight = Coordinates(
+            x = min(bottomRight.x, other.bottomRight.x),
+            y = min(bottomRight.y, other.bottomRight.y)
+        )
+        val width = bottomRight.x - topLeft.x
+        val height = bottomRight.y - topLeft.y
+        if (width <= 0 || height <= 0) return null
+        return RectRegion(width, height, topLeft)
     }
 
     companion object {
@@ -148,6 +146,12 @@ private data class RectRegion(
 }
 
 private data class Region(val coordinates: Set<Coordinates>) {
+    val size: Int get() = coordinates.size
+    fun isEmpty() = coordinates.isEmpty()
+    fun isNotEmpty() = coordinates.isNotEmpty()
+
+    inline fun filter(predicate: (Coordinates) -> Boolean): Region =
+        Region(coordinates = coordinates.filter(predicate).toSet())
 
     operator fun contains(coordinates: Coordinates): Boolean {
         return coordinates in this.coordinates
@@ -164,7 +168,33 @@ private data class Region(val coordinates: Set<Coordinates>) {
     infix fun intersect(other: Region): Region {
         return Region(coordinates = coordinates intersect other.coordinates)
     }
+
+    fun toRectRegionOrNull(): RectRegion? {
+        val sorted = coordinates.sortedWith(
+            Comparator<Coordinates> { (x, _), (otherX, _) -> x.compareTo(otherX) }
+                .thenComparator { (_, y), (_, otherY) -> y.compareTo(otherY) }
+        )
+        val topLeft = sorted.first()
+        val bottomRight = sorted.last()
+        val width = bottomRight.x - topLeft.x
+        val height = bottomRight.y - topLeft.y
+        if (width <= 0 || height <= 0) return null
+        val region = RectRegion(width, height, topLeft)
+        if (region.raw != this) return null
+        return region
+    }
+
+    fun toRectRegion(): RectRegion = toRectRegionOrNull() ?: error("Cannot create Rect from $coordinates")
+
+    companion object {
+        val Empty: Region = Region(emptySet())
+    }
 }
+
+@JvmName("regionString")
+private fun List<String>.region(): Region = map { string -> string.toList() }.region()
+@JvmName("rectRegionString")
+private fun List<String>.rectRegion(): RectRegion = map { string -> string.toList() }.rectRegion()
 
 private fun List<List<*>>.region(): Region {
     val columns = this
@@ -177,5 +207,4 @@ private fun List<List<*>>.region(): Region {
     return Region(coordinates.toSet())
 }
 
-@JvmName("regionString")
-private fun List<String>.region(): Region = map { string -> string.toList() }.region()
+private fun List<List<*>>.rectRegion(): RectRegion = region().toRectRegion()
