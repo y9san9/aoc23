@@ -32,3 +32,14 @@ private inline fun <T, R> List<T>.lastNotNullOf(block: (T) -> R?): R {
 private fun stub(): Nothing = error("stub!")
 
 private fun zeroIntTriple() = Triple(0, 0, 0)
+
+private infix fun Int.smallPow(other: Int): Int {
+    val base = this
+
+    tailrec fun body(times: Int = other, acc: Int = 1): Int = when {
+        times == 0 -> acc
+        else -> body(times = times - 1, acc = acc * base)
+    }
+
+    return body()
+}
