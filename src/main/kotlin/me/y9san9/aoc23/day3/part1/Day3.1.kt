@@ -2,12 +2,12 @@ package me.y9san9.aoc23.day3.part1
 
 import java.io.File
 
-data class EngineNumber(
+private data class EngineNumber(
     val int: Int,
     val neighbors: List<Char>
 )
 
-fun main() {
+private fun main() {
     val lines = lines()
     val region = lines.region()
 
