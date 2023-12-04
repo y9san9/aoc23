@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm")
     application
 }
 
@@ -11,6 +11,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0-RC")
     testImplementation(kotlin("test"))
 }
 
