@@ -2,7 +2,7 @@ package me.y9san9.aoc23.day4.part1
 
 import java.io.File
 
-data class Card(
+private data class Card(
     val winningNumbers: List<Int>,
     val numbers: List<Int>
 )
