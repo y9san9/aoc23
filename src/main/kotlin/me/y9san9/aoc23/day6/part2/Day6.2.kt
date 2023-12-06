@@ -1,14 +1,26 @@
-package me.y9san9.aoc23
+package me.y9san9.aoc23.day6.part2
 
 import java.io.File
-import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import kotlin.math.sqrt
 
-// NOTE: Each Day* file contains FULL solution
-// this file is only used to copy-paste util functions
-// from day to day
+// distance = (time - speedingTime) * speedingTime
+// distance > record
+
+// x = speedingTime
+// y = record
+// (time - x) * x > y
+// - x^2 + time * x - y > 0
+
+private fun main() {
+    val (time, record) = lines().take(n = 2).map { line ->
+        line.drop(n = 11).replace(" ", "").toLong()
+    }
+    val (min, max) = solveQuadratic(-1, time, -record)
+    val amount = max - min + 1
+    println(amount)
+}
 
 // SCAFFOLD
 
@@ -16,7 +28,7 @@ private fun lines() = inputFile().readLines()
 
 private fun inputFile(): File = File(
     System.getenv("user.dir"),
-    "src/main/kotlin/me/y9san9/aoc23/dayTODO/partTODO/Input.txt"
+    "src/main/kotlin/me/y9san9/aoc23/day6/part2/Input.txt"
 )
 
 private inline fun <T> List<T>.indexOfFirstOrNull(
@@ -36,7 +48,14 @@ private fun stub(): Nothing = error("stub!")
 private fun zeroIntTriple() = Triple(0, 0, 0)
 
 private infix fun Int.smallPow(other: Int): Int {
-    return this.toFloat().pow(other).roundToInt()
+    val base = this
+
+    tailrec fun body(times: Int = other, acc: Int = 1): Int = when {
+        times == 0 -> acc
+        else -> body(times = times - 1, acc = acc * base)
+    }
+
+    return body()
 }
 
 private fun smallSqrt(int: Int): Int {
@@ -44,8 +63,8 @@ private fun smallSqrt(int: Int): Int {
 }
 
 private fun solveQuadratic(a: Int, b: Int, c: Int): Pair<Int, Int> {
-    val first = (-b + smallSqrt(b * b + 4 * a * c)) / 2
-    val second = (-b + smallSqrt(b * b - 4 * a * c)) / 2
+    val first = (-b + smallSqrt(b * b - 4 * a * c)) / 2
+    val second = (-b + smallSqrt(b * b + 4 * a * c)) / 2
     return first to second
 }
 
@@ -58,3 +77,4 @@ private fun solveQuadratic(a: Long, b: Long, c: Long): Pair<Long, Long> {
     val second = (-b + smallSqrt(b * b - 4 * a * c)) / 2
     return first to second
 }
+

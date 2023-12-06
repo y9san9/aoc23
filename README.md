@@ -26,6 +26,14 @@
   - [Part 1](src/main/kotlin/me/y9san9/aoc23/day4/part1/Day4.1.kt)
   - [Part 2](src/main/kotlin/me/y9san9/aoc23/day4/part2/Day4.2.kt)
 
+- Day 5
+  - [Part 1](src/main/kotlin/me/y9san9/aoc23/day5/part1/Day5.1.kt)
+  - [Part 2](src/main/kotlin/me/y9san9/aoc23/day5/part2/Day5.2.kt)
+
+- Day 6
+  - [Part 1](src/main/kotlin/me/y9san9/aoc23/day6/part1/Day6.1.kt)
+  - [Part 2](src/main/kotlin/me/y9san9/aoc23/day6/part2/Day6.2.kt)
+
 ## Immutability
 
 I know that lots of stdlib functions (like `map`, `sumOf`, etc.) use mutable state under the hood.
