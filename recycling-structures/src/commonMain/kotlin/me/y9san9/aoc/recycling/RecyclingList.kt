@@ -21,13 +21,24 @@ class RecyclingList<T>(
     private var ownership = Ownership.Owned
     private val isSecure = mode.ordinal == RecyclingMode.Secure.ordinal
 
-    private val value: List<T> get() = ownership.get(underlying)
+    @PublishedApi
+    internal val value: List<T> get() = ownership.get(underlying)
 
     val size: Int get() = value.size
+    val indices: IntRange get() = value.indices
     operator fun get(index: Int) = value[index]
     fun set(index: Int, value: T) = recycle { underlying[index] = value }
     inline fun calculate(index: Int, block: (T) -> T) = set(index, block(get(index)))
+    inline fun mapInPlace(transform: (T) -> T): RecyclingList<T> {
+        var result = this
+        for (i in indices) {
+            result = result.set(i, transform(result[i]))
+        }
+        return result
+    }
+    inline fun all(predicate: (T) -> Boolean) = value.all(predicate)
     operator fun iterator(): Iterator<T> = value.iterator()
+    fun listIterator(): ListIterator<T> = value.listIterator()
     operator fun plus(element: T) = recycle { underlying.add(element) }
     fun drop(n: Int): RecyclingList<T> = recycle {
         repeat(n) { underlying.removeFirst() }
@@ -37,7 +48,7 @@ class RecyclingList<T>(
 
     private inline fun recycle(block: () -> Unit): RecyclingList<T> {
         return if (isSecure) {
-            ownership = Ownership.Disposed
+            ownership = ownership.get(Ownership.Disposed)
             block()
             RecyclingList(underlying, mode)
         } else {
@@ -56,3 +67,7 @@ inline fun <T> RecyclingList(
     mode: RecyclingMode = RecyclingMode.Secure,
     initializer: (Int) -> T
 ): RecyclingList<T> = RecyclingList(MutableList(size, initializer), mode)
+
+fun <T> List<T>.toRecyclingList(
+    mode: RecyclingMode = RecyclingMode.Secure
+): RecyclingList<T> = RecyclingList(this.toMutableList(), mode)

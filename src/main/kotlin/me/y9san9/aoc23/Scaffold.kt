@@ -31,6 +31,15 @@ private inline fun <T, R> List<T>.lastNotNullOf(block: (T) -> R?): R {
     return asReversed().firstNotNullOf(block)
 }
 
+private inline fun <T> Sequence<T>.takeWhileInclusive(
+    crossinline block: (T) -> Boolean
+): Sequence<T> = sequence {
+    for (element in this@takeWhileInclusive) {
+        yield(element)
+        if (!block(element)) break
+    }
+}
+
 private fun stub(): Nothing = error("stub!")
 
 private fun zeroIntTriple() = Triple(0, 0, 0)
@@ -57,4 +66,41 @@ private fun solveQuadratic(a: Long, b: Long, c: Long): Pair<Long, Long> {
     val first = (-b - smallSqrt(b * b - 4 * a * c)) / 2
     val second = (-b + smallSqrt(b * b - 4 * a * c)) / 2
     return first to second
+}
+
+private fun gcd(a: Int, b: Int): Int {
+    tailrec fun loop(
+        a: Int,
+        b: Int
+    ): Int {
+        if (b <= 0) return a
+        return loop(
+            a = b,
+            b = a % b
+        )
+    }
+    return loop(a, b)
+}
+
+private fun lcm(a: Int, b: Int): Int {
+    return a * (b / gcd(a, b))
+}
+
+
+private fun gcd(a: Long, b: Long): Long {
+    tailrec fun loop(
+        a: Long,
+        b: Long
+    ): Long {
+        if (b <= 0) return a
+        return loop(
+            a = b,
+            b = a % b
+        )
+    }
+    return loop(a, b)
+}
+
+private fun lcm(a: Long, b: Long): Long {
+    return a * (b / gcd(a, b))
 }
