@@ -84,6 +84,7 @@ fun main() {
         if (nextPoint is Point.Start) return (acc + nextCoordinate).toRegion()
         return follow(nextCoordinate, nextPoint as Point.Pipe, direction, acc = acc + nextCoordinate)
     }
+
     val circuit = follow(
         coordinate = startCoordinate,
         pipe = startEquivalent
@@ -91,11 +92,13 @@ fun main() {
         val point = grid[coordinate]
         if (point is Point.Start) startEquivalent else point
     }.toGrid { Point.Ground }
+
     tailrec fun rayCasting(
         y: Int = circuit.minY,
         acc: Int = 0
     ): Int {
         if (y > circuit.maxY) return acc
+
         tailrec fun traceRow(
             x: Int = circuit.minX,
             prevIsInside: Boolean = false,
@@ -103,7 +106,9 @@ fun main() {
             acc: Int = 0
         ): Int {
             if (x > circuit.maxX) return acc
+
             val point = circuit[x, y]
+
             if (point is Point.Pipe) {
                 val continuousLine = prevContinuousLine + point
                 val isTerminated = point.directions.none { (x) -> x == 1 }
@@ -117,6 +122,7 @@ fun main() {
                     acc = acc
                 )
             }
+
             return traceRow(
                 x = x + 1,
                 prevIsInside = prevIsInside,
@@ -124,6 +130,7 @@ fun main() {
                 acc = if (prevIsInside) acc + 1 else acc
             )
         }
+
         return rayCasting(
             y = y + 1,
             acc = acc + traceRow()
