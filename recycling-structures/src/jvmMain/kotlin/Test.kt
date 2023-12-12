@@ -1,6 +1,6 @@
 
-import me.y9san9.aoc.recycling.RecyclingList
-import me.y9san9.aoc.recycling.RecyclingMode
+import me.y9san9.recycling.RecyclingList
+import me.y9san9.recycling.RecyclingMode
 
 fun main() {
     val list1 = RecyclingList(3, RecyclingMode.Fast) { it }

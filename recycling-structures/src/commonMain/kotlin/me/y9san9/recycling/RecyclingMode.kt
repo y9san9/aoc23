@@ -1,3 +1,3 @@
-package me.y9san9.aoc.recycling
+package me.y9san9.recycling
 
 enum class RecyclingMode { Fast, Secure }

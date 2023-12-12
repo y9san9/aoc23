@@ -1,6 +1,6 @@
 
-import me.y9san9.aoc.recycling.RecyclingList
-import me.y9san9.aoc.recycling.RecyclingMode
+import me.y9san9.recycling.RecyclingList
+import me.y9san9.recycling.RecyclingMode
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
 

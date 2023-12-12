@@ -1,6 +1,6 @@
-package me.y9san9.aoc.recycling.pool
+package me.y9san9.recycling.pool
 
-import me.y9san9.aoc.recycling.annotation.UnsafeKType
+import me.y9san9.recycling.annotation.UnsafeKType
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
@@ -13,8 +13,10 @@ fun ObjectPool(
 }
 
 interface ObjectPool {
-    @UnsafeKType fun borrowOrNull(type: KType): Any?
-    @UnsafeKType fun recycle(value: Any?, type: KType)
+    @UnsafeKType
+    fun borrowOrNull(type: KType): Any?
+    @UnsafeKType
+    fun recycle(value: Any?, type: KType)
 
     enum class ThreadSafety {
         None, Synchronized

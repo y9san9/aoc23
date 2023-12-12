@@ -15,4 +15,6 @@ plugins {
 rootProject.name = "aoc23"
 
 include("native")
+include("geometry-2d")
+include("lens")
 include("recycling-structures")

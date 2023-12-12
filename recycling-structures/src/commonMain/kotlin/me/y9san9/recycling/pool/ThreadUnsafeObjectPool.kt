@@ -1,6 +1,6 @@
-package me.y9san9.aoc.recycling.pool
+package me.y9san9.recycling.pool
 
-import me.y9san9.aoc.recycling.annotation.UnsafeKType
+import me.y9san9.recycling.annotation.UnsafeKType
 import kotlin.reflect.KType
 
 class ThreadUnsafeObjectPool(

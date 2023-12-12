@@ -1,11 +1,11 @@
-package me.y9san9.aoc.recycling
+package me.y9san9.recycling
 
 @JvmInline
 value class Ownership private constructor(private val isOwned: Boolean) {
     fun <T> get(value: T): T = if (isOwned) {
         value
     } else {
-        error("Object was disposed to another `Pinned`. You cannot use it anymore")
+        error("Object was disposed to another `RecyclingList`. You cannot use it anymore")
     }
 
     companion object {
@@ -17,7 +17,7 @@ value class Ownership private constructor(private val isOwned: Boolean) {
 class RecyclingList<T>(
     private val underlying: MutableList<T>,
     private val mode: RecyclingMode
-) {
+) : Iterable<T> {
     private var ownership = Ownership.Owned
     private val isSecure = mode.ordinal == RecyclingMode.Secure.ordinal
 
@@ -37,7 +37,7 @@ class RecyclingList<T>(
         return result
     }
     inline fun all(predicate: (T) -> Boolean) = value.all(predicate)
-    operator fun iterator(): Iterator<T> = value.iterator()
+    override operator fun iterator(): Iterator<T> = value.iterator()
     fun listIterator(): ListIterator<T> = value.listIterator()
     operator fun plus(element: T) = recycle { underlying.add(element) }
     fun drop(n: Int): RecyclingList<T> = recycle {
@@ -71,3 +71,10 @@ inline fun <T> RecyclingList(
 fun <T> List<T>.toRecyclingList(
     mode: RecyclingMode = RecyclingMode.Secure
 ): RecyclingList<T> = RecyclingList(this.toMutableList(), mode)
+
+fun <T> recyclingListOf(
+    vararg elements: T
+): RecyclingList<T> = RecyclingList<T>(
+    underlying = mutableListOf(*elements),
+    mode = RecyclingMode.Secure
+)
