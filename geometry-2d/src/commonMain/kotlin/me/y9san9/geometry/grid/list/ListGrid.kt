@@ -18,4 +18,6 @@ public class ListGrid<T>(
         val relative = coordinate - topLeft
         return underlying[relative.y][relative.x]
     }
+
+    override fun toString(): String = underlying.toString()
 }

@@ -64,6 +64,10 @@ public inline fun <T> Grid<T>.filter(
     predicate: (Coordinate, T) -> Boolean
 ): Region<T> = toRegion().filter(predicate)
 
+@Suppress("UNCHECKED_CAST")
+public inline fun <reified T> Grid<*>.filterIsInstance(): Region<T> =
+    filter { _, element -> element is T } as Region<T>
+
 public fun <T> Grid<T>.toRegion(): Region<T> = object : Region<T> {
     val grid = this@toRegion
 
